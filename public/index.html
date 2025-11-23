@@ -236,6 +236,58 @@
             line-height: 1.4;
         }
 
+        .link-button {
+            background: none;
+            border: none;
+            padding: 0;
+            margin-top: 0.5rem;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password-panel {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed #ccc;
+        }
+
+        .small-text {
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .small-btn {
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            padding: 0.35rem 0.75rem;
+        }
+
+        .forgot-password {
+            text-align: center;
+        }
+
+        .forgot-password-panel {
+            text-align: center;
+        }
+
+        .forgot-password-panel .input {
+            margin-top: 0.5rem;
+            width: 80%;
+            /* or 100% if you prefer */
+        }
+
+        .forgot-password-panel .btn-primary {
+            margin-left: 0.5rem;
+        }
+
+        /* Ensures all text matches main card styling */
+        .forgot-password,
+        .forgot-password-panel,
+        .forgot-password-panel .small-text {
+            font-family: inherit !important;
+        }
+
         /* App view */
 
         #app-view {
@@ -734,6 +786,22 @@
                     <div class="auth-error" id="auth-message"></div>
                 </div>
             </form>
+            <div class="forgot-password">
+                <button type="button" id="forgot-password-link" class="link-button">
+                    Forgot your password?
+                </button>
+
+                <div id="forgot-password-panel" class="forgot-password-panel" style="display:none;">
+                    <p class="small-text">
+                        Enter your email and we’ll send a password reset link.
+                    </p>
+                    <input type="email" id="reset-email" class="input" placeholder="Email" />
+                    <button type="button" id="send-reset-email" class="btn-primary small-btn">
+                        Send reset link
+                    </button>
+                    <p id="reset-message" class="small-text"></p>
+                </div>
+            </div>
 
             <div class="auth-footer">
                 This secure space is for sharing documents and viewing information related to your care.
@@ -1078,6 +1146,8 @@
 
         const statDocs = document.getElementById("stat-docs");
         const statRole = document.getElementById("stat-role");
+
+
 
         // Documents tab
         const documentsCardTitle = document.querySelector("#tab-documents .card-title");
@@ -1492,6 +1562,46 @@
                 }
             });
         }
+        const forgotPasswordLink = document.getElementById("forgot-password-link");
+        const forgotPasswordPanel = document.getElementById("forgot-password-panel");
+        const resetEmailInput = document.getElementById("reset-email");
+        const resetMessage = document.getElementById("reset-message");
+        const sendResetEmailBtn = document.getElementById("send-reset-email");
+
+        // Toggle panel
+        forgotPasswordLink.addEventListener("click", () => {
+            const loginEmail = document.getElementById("login-email").value.trim();
+            if (!resetEmailInput.value && loginEmail) {
+                resetEmailInput.value = loginEmail; // Prefill nicely
+            }
+
+            const isHidden = forgotPasswordPanel.style.display === "none";
+            forgotPasswordPanel.style.display = isHidden ? "block" : "none";
+            resetMessage.textContent = "";
+        });
+
+        // Send reset email
+        sendResetEmailBtn.addEventListener("click", () => {
+            const email = resetEmailInput.value.trim();
+            if (!email) {
+                resetMessage.textContent = "Please enter your email address.";
+                resetMessage.style.color = "red";
+                return;
+            }
+
+            firebase.auth().sendPasswordResetEmail(email)
+                .then(() => {
+                    resetMessage.textContent =
+                        "If an account exists for this email, a reset link has been sent.";
+                    resetMessage.style.color = "green";
+                })
+                .catch((error) => {
+                    console.error(error);
+                    resetMessage.textContent =
+                        "There was a problem sending the reset email. Try again.";
+                    resetMessage.style.color = "red";
+                });
+        });
 
         // --- Booking Button (show embedded Splose widget) ---
         if (bookingButton) {
@@ -1580,8 +1690,9 @@
                 if (adminUploadCard) adminUploadCard.style.display = "block";
                 if (adminFilterBar) adminFilterBar.style.display = "flex";
 
-                if (bookingCard) bookingCard.style.display = "none";
-                if (bookingEmbedPanel) bookingEmbedPanel.style.display = "none";
+                if (bookingCard) { bookingCard.style.display = "none"; }
+                if (bookingEmbedPanel) { bookingEmbedPanel.style.display = "none"; }
+
                 const documentsHelp = document.getElementById("documents-help");
                 if (documentsHelp) {
                     documentsHelp.style.display = "none";
